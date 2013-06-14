@@ -64,21 +64,13 @@ popRandom = function(array) {
     data[index] = value;
   };
 
-  S.isEmpty = function(data, pos, options) {
-    var cell = S.getCell(data, pos, options);
+  S.isEmpty = function(cell, options) {
     return cell.group === null;
   };
 
-  S.calcHappiness = function(data, pos, options) {
+  S.getNeighbors = function(data, pos, options) {
     var offr, offc, nr, nc, r = pos[0], c = pos[1],
-      ncount = 0, incount = 0, outcount = 0,
-      inratio, outratio, 
-      nname, groupName, group;
-
-    cell = S.getCell(data, pos, options);
-    if (cell.group === null) {
-      return null;
-    }
+        neighbors = [];
 
     for (offr = -1; offr <= 1; ++offr) {
       for (offc = -1; offc <= 1; ++offc) {
@@ -88,14 +80,34 @@ popRandom = function(array) {
         if (nc < 0) nc = options.cols + nc;
 
         neighbor = S.getCell(data, [nr, nc], options);
-        if (neighbor.group) {
-          ncount++;
-          // TODO: Check if we can just compare groups, not names.
-          if (neighbor.group.name == cell.group.name) {
-            incount++;
-          } else {
-            outcount++;
-          }
+        neighbors.push(neighbor);
+      }
+    }
+    return neighbors;
+  };
+
+  S.calcHappiness = function(data, pos, options) {
+    var n, neighbor,
+      ncount = 0, incount = 0, outcount = 0,
+      inratio, outratio, 
+      nname, groupName, group,
+      cell = S.getCell(data, pos, options),
+      neighbors = S.getNeighbors(data, pos, options);
+
+    cell = S.getCell(data, pos, options);
+    if (S.isEmpty(cell, options)) {
+      return null;
+    }
+
+    for (n = 0; n < neighbors.length; ++n) {
+      neighbor = neighbors[n];
+      if (!S.isEmpty(neighbor, options)) {
+        ncount++;
+        // TODO: Check if we can just compare groups, not names.
+        if (neighbor.group.name == cell.group.name) {
+          incount++;
+        } else {
+          outcount++;
         }
       }
     }
@@ -127,7 +139,7 @@ popRandom = function(array) {
     for (r = 0; r < config.rows; ++r) {
       for (c = 0; c < config.cols; ++c) {
         cell = S.getCell(data, [r, c], config);
-        if (S.isEmpty(data, [r, c], config)) {
+        if (S.isEmpty(cell, config)) {
           empty.push([r, c]);
         } else {
           cell.happiness = S.calcHappiness(data, [r, c], config);
