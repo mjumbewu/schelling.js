@@ -1,0 +1,94 @@
+<html>
+<head>
+	<!--
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/d3/3.1.6/d3.min.js"></script>
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.4/underscore-min.js"></script>
+	-->
+	<script src="vendor/d3.min.js"></script>
+	<script src="vendor/underscore-min.js"></script>
+	<script src="schelling.js"></script>
+
+	<style>
+		#schelling-canvas {
+			width: 600px;
+			height: 300px;
+		}
+
+		#schelling-canvas div {
+			width: 3px;
+			height: 3px;
+			display: inline-block;
+			/*-webkit-transition: background-color 0.5s;*/
+		}
+
+		body {
+			background-color: black;
+		}
+	</style>
+</head>
+
+<body>
+	<div id="schelling-canvas"></div>
+
+	<script>
+		var config = {
+				rows: 100,
+				cols: 200,
+				groups: {
+					group1: {
+						name: 'group1',
+						color: 'red',
+						other_tolerance: 0.7,
+						other_affinity: 0.0,
+						self_tolerance: 1.0,
+						self_affinity: 0.5
+					},
+					group2: {
+						name: 'group2',
+						color: 'green',
+						other_tolerance: 0.7,
+						other_affinity: 0.0,
+						self_tolerance: 1.0,
+						self_affinity: 0.5
+					}
+				},
+				mix: {
+					group1: 3.0,
+					group2: 3.0,
+					empty: 1.0
+				},
+				movers_per_step: 10,
+				default_color: 'white'
+			},
+
+			data = Schelling.makeInitialData(config),
+			interval = null;
+
+		function stepSchelling() {
+			Schelling.step(data, config);
+		}
+
+		function playSchelling() {
+			interval = setInterval(stepSchelling, 10);
+		}
+
+		function pauseSchelling() {
+			clearInterval(interval);
+			interval = null;
+		}
+
+		function toggleSchelling() {
+			if (interval) {
+				pauseSchelling();
+			} else {
+				playSchelling();
+			}
+		};
+
+		playSchelling();
+	</script>
+
+	<button onclick="toggleSchelling()">Play/Pause</button>
+
+</body>
+</html>
