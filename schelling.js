@@ -74,6 +74,9 @@ popRandom = function(array) {
 
     for (offr = -1; offr <= 1; ++offr) {
       for (offc = -1; offc <= 1; ++offc) {
+        if (offr === 0 && offc === 0)
+          continue;
+        
         nr = (offr + r) % options.rows;
         if (nr < 0) nr = options.rows + nr;
         nc = (offc + c) % options.cols;
