@@ -54,28 +54,28 @@ popRandom = function(array) {
     return data;
   };
 
-  S.getCell = function(data, r, c, options) {
-    var index = r * options.cols + c;
+  S.getCell = function(data, pos, options) {
+    var r = pos[0], c = pos[1], index = r * options.cols + c;
     return data[index];
   };
 
-  S.setCell = function(data, r, c, value, options) {
-    var index = r * options.cols + c;
+  S.setCell = function(data, pos, value, options) {
+    var r = pos[0], c = pos[1], index = r * options.cols + c;
     data[index] = value;
   };
 
-  S.isEmpty = function(data, r, c, options) {
-    var cell = S.getCell(data, r, c, options);
+  S.isEmpty = function(data, pos, options) {
+    var cell = S.getCell(data, pos, options);
     return cell.group === null;
   };
 
-  S.calcHappiness = function(data, r, c, options) {
-    var offr, offc, nr, nc, 
+  S.calcHappiness = function(data, pos, options) {
+    var offr, offc, nr, nc, r = pos[0], c = pos[1],
       ncount = 0, incount = 0, outcount = 0,
       inratio, outratio, 
       nname, groupName, group;
 
-    cell = S.getCell(data, r, c, options);
+    cell = S.getCell(data, pos, options);
     if (cell.group === null) {
       return null;
     }
@@ -87,7 +87,7 @@ popRandom = function(array) {
         nc = (offc + c) % options.cols;
         if (nc < 0) nc = options.cols + nc;
 
-        neighbor = S.getCell(data, nr, nc, options);
+        neighbor = S.getCell(data, [nr, nc], options);
         if (neighbor.group) {
           ncount++;
           // TODO: Check if we can just compare groups, not names.
@@ -112,12 +112,12 @@ popRandom = function(array) {
     }
   };
 
-  S.swapData = function(data, r1, c1, r2, c2, options) {
+  S.swapData = function(data, pos1, pos2, options) {
     var cell1, cell2;
-    cell1 = S.getCell(data, r1, c1, options);
-    cell2 = S.getCell(data, r2, c2, options);
-    S.setCell(data, r1, c1, cell2, options);
-    S.setCell(data, r2, c2, cell1, options);
+    cell1 = S.getCell(data, pos1, options);
+    cell2 = S.getCell(data, pos2, options);
+    S.setCell(data, pos1, cell2, options);
+    S.setCell(data, pos2, cell1, options);
   };
 
   S.step = function(data, config) {
@@ -126,11 +126,11 @@ popRandom = function(array) {
 
     for (r = 0; r < config.rows; ++r) {
       for (c = 0; c < config.cols; ++c) {
-        cell = S.getCell(data, r, c, config);
-        if (S.isEmpty(data, r, c, config)) {
+        cell = S.getCell(data, [r, c], config);
+        if (S.isEmpty(data, [r, c], config)) {
           empty.push([r, c]);
         } else {
-          cell.happiness = S.calcHappiness(data, r, c, config);
+          cell.happiness = S.calcHappiness(data, [r, c], config);
           if (cell.happiness === 0) {
             unhappy.push([r, c]);
           }
@@ -148,7 +148,7 @@ popRandom = function(array) {
       mover = movers[i];
       destination = destinations[i];
       if (mover && destination) {
-        S.swapData(data, mover[0], mover[1], destination[0], destination[1], config);
+        S.swapData(data, mover, destination, config);
       }
     }
 
