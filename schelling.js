@@ -16,10 +16,24 @@ popRandom = function(array) {
 };
 
 (function(S) {
-  S.colorFunc = function (cell, options) {
+  S.colorFunc = function(world, cell) {
     if (cell.group) return cell.group.color;
-    else return options.default_color;
+    else return world.default_color;
   };
+
+  S.makeWorld = function(options) {
+    var world = _.extend(options, {});
+
+    // Set a name attribute for each of the groups
+    for (groupName in world.groups) {
+      world.groups[groupName].name = groupName;
+    }
+
+    world.grid = S.makeInitialGrid(options);
+    world.$els = options.$doc.children();
+
+    return world;
+  }
 
   S.chooseGroup = function(options) {
     var total = sum(_.values(options.mix)),
@@ -40,35 +54,39 @@ popRandom = function(array) {
     }
   };
 
-  S.makeInitialData = function(options) {
-    var r, c, group, data = [];
+  S.makeInitialGrid = function(options) {
+    var r, c, group, cell, data = [];
 
     for (r = 0; r < options.rows; ++r) {
       for (c = 0; c < options.cols; ++c) {
         group = S.chooseGroup(options);
-        data.push({
-          group: group
-        });
+        cell = {group: group};
+        // Insert a div for the cell
+        $('<div/>')
+          .css({backgroundColor: S.colorFunc(options, cell)})
+          .appendTo(options.$doc);
+        data.push(cell);
       }
     }
     return data;
   };
 
-  S.getCell = function(data, pos, options) {
-    var r = pos[0], c = pos[1], index = r * options.cols + c;
-    return data[index];
+  S.getCell = function(world, pos) {
+    var r = pos[0], c = pos[1], index = r * world.cols + c;
+    return world.grid[index];
   };
 
-  S.setCell = function(data, pos, value, options) {
-    var r = pos[0], c = pos[1], index = r * options.cols + c;
-    data[index] = value;
+  S.setCell = function(world, pos, cell) {
+    var r = pos[0], c = pos[1], index = r * world.cols + c;
+    world.grid[index] = cell;
+    $(world.$els[index]).css({backgroundColor: S.colorFunc(world, cell)});
   };
 
-  S.isEmpty = function(cell, options) {
+  S.isEmpty = function(cell) {
     return cell.group === null;
   };
 
-  S.getNeighbors = function(data, pos, options) {
+  S.getNeighbors = function(world, pos) {
     var offr, offc, nr, nc, r = pos[0], c = pos[1],
         neighbors = [];
 
@@ -76,35 +94,33 @@ popRandom = function(array) {
       for (offc = -1; offc <= 1; ++offc) {
         if (offr === 0 && offc === 0)
           continue;
-        
-        nr = (offr + r) % options.rows;
-        if (nr < 0) nr = options.rows + nr;
-        nc = (offc + c) % options.cols;
-        if (nc < 0) nc = options.cols + nc;
 
-        neighbor = S.getCell(data, [nr, nc], options);
+        nr = (offr + r) % world.rows;
+        if (nr < 0) nr = world.rows + nr;
+        nc = (offc + c) % world.cols;
+        if (nc < 0) nc = world.cols + nc;
+
+        neighbor = S.getCell(world, [nr, nc]);
         neighbors.push(neighbor);
       }
     }
     return neighbors;
   };
 
-  S.calcHappiness = function(data, pos, options) {
-    var n, neighbor,
-      ncount = 0, incount = 0, outcount = 0,
-      inratio, outratio, 
-      nname, groupName, group,
-      cell = S.getCell(data, pos, options),
-      neighbors = S.getNeighbors(data, pos, options);
+  S.calcHappiness = function(world, pos) {
+    var n, neighbor, ncount = 0, 
+      incount = 0, outcount = 0, inratio, outratio, 
+      cell = S.getCell(world, pos),
+      neighbors = S.getNeighbors(world, pos);
 
-    cell = S.getCell(data, pos, options);
-    if (S.isEmpty(cell, options)) {
+    cell = S.getCell(world, pos);
+    if (S.isEmpty(cell)) {
       return null;
     }
 
     for (n = 0; n < neighbors.length; ++n) {
       neighbor = neighbors[n];
-      if (!S.isEmpty(neighbor, options)) {
+      if (!S.isEmpty(neighbor)) {
         ncount++;
         // TODO: Check if we can just compare groups, not names.
         if (neighbor.group.name == cell.group.name) {
@@ -127,25 +143,25 @@ popRandom = function(array) {
     }
   };
 
-  S.swapData = function(data, pos1, pos2, options) {
+  S.swapCells = function(world, pos1, pos2) {
     var cell1, cell2;
-    cell1 = S.getCell(data, pos1, options);
-    cell2 = S.getCell(data, pos2, options);
-    S.setCell(data, pos1, cell2, options);
-    S.setCell(data, pos2, cell1, options);
+    cell1 = S.getCell(world, pos1);
+    cell2 = S.getCell(world, pos2);
+    S.setCell(world, pos1, cell2);
+    S.setCell(world, pos2, cell1);
   };
 
-  S.step = function(data, config) {
+  S.step = function(world) {
     var r, c, cell, happiness, unhappy = [], empty = [],
         i, movers = [], destinations = [];
 
-    for (r = 0; r < config.rows; ++r) {
-      for (c = 0; c < config.cols; ++c) {
-        cell = S.getCell(data, [r, c], config);
-        if (S.isEmpty(cell, config)) {
+    for (r = 0; r < world.rows; ++r) {
+      for (c = 0; c < world.cols; ++c) {
+        cell = S.getCell(world, [r, c]);
+        if (S.isEmpty(cell)) {
           empty.push([r, c]);
         } else {
-          cell.happiness = S.calcHappiness(data, [r, c], config);
+          cell.happiness = S.calcHappiness(world, [r, c]);
           if (cell.happiness === 0) {
             unhappy.push([r, c]);
           }
@@ -163,19 +179,8 @@ popRandom = function(array) {
       mover = movers[i];
       destination = destinations[i];
       if (mover && destination) {
-        S.swapData(data, mover, destination, config);
+        S.swapCells(world, mover, destination);
       }
     }
-
-    var colorFunc = function(cell) { return S.colorFunc(cell, config); },
-        cells;
-
-    cells = d3.select('#schelling-canvas').selectAll('div')
-        .data(data)
-        .style('background-color', colorFunc);
-
-    cells.enter()
-      .append('div')
-      .style('background-color', colorFunc);
   };
 })(Schelling);

@@ -6,6 +6,7 @@
 	-->
 	<script src="vendor/d3.min.js"></script>
 	<script src="vendor/underscore-min.js"></script>
+	<script src="vendor/jquery.min.js"></script>
 	<script src="schelling.js"></script>
 
 	<style>
@@ -22,21 +23,22 @@
 		}
 
 		body {
-			background-color: black;
+			background-color: silver;
 		}
 	</style>
 </head>
 
 <body>
 	<div id="schelling-canvas"></div>
+	<div id="schelling-stats"></div>
 
 	<script>
 		var config = {
 				rows: 100,
 				cols: 200,
+				$doc: $('#schelling-canvas'),
 				groups: {
 					group1: {
-						name: 'group1',
 						color: 'red',
 						other_tolerance: 0.7,
 						other_affinity: 0.0,
@@ -44,7 +46,6 @@
 						self_affinity: 0.5
 					},
 					group2: {
-						name: 'group2',
 						color: 'green',
 						other_tolerance: 0.7,
 						other_affinity: 0.0,
@@ -53,23 +54,23 @@
 					}
 				},
 				mix: {
-					group1: 3.0,
-					group2: 3.0,
+					group1: 5.0,
+					group2: 5.0,
 					empty: 1.0
 				},
 				movers_per_step: 10,
-				default_color: 'white'
+				default_color: 'silver'
 			},
 
-			data = Schelling.makeInitialData(config),
+			world = Schelling.makeWorld(config),
 			interval = null;
 
 		function stepSchelling() {
-			Schelling.step(data, config);
+			Schelling.step(world);
 		}
 
 		function playSchelling() {
-			interval = setInterval(stepSchelling, 10);
+			interval = setInterval(stepSchelling, 0);
 		}
 
 		function pauseSchelling() {
