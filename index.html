@@ -66,11 +66,14 @@
 			interval = null;
 
 		function stepSchelling() {
-			Schelling.step(world);
+			var i;
+			for (s = 0; s < config.movers_per_step; ++s) {
+				Schelling.step(world);
+			}
 		}
 
 		function playSchelling() {
-			interval = setInterval(stepSchelling, 0);
+			interval = setInterval(stepSchelling, 10);
 		}
 
 		function pauseSchelling() {
