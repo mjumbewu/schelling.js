@@ -72,7 +72,8 @@ chooseRandom = function(array, pop) {
   };
 
   S.makeInitialGrid = function(options) {
-    var r, c, group, cell, color, data = [];
+    var r, c, group, cell, color, data = [],
+        docHtml = '';
 
     for (r = 0; r < options.rows; ++r) {
       for (c = 0; c < options.cols; ++c) {
@@ -89,12 +90,16 @@ chooseRandom = function(array, pop) {
           color: color
         };
 
+        if (group) {
+          group.population = (group.population || 0) + 1;
+        }
+
         // Insert a div for the cell
-        $('<div style="background-color: ' + color + '"/>')
-          .appendTo(options.$doc);
+        docHtml += '<div style="background-color: ' + color + '"/>';
         data.push(cell);
       }
     }
+    options.$doc.html(docHtml);
     return data;
   };
 

@@ -11,7 +11,7 @@
 
 	<style>
 		#schelling-canvas {
-			width: 600px;
+			width: 300px;
 			height: 300px;
 		}
 
@@ -29,44 +29,98 @@
 </head>
 
 <body>
+	<div id="schelling-controls">
+
+		<div class="speed-control">
+			<label for="speed">Speed</label>
+			<input id="speed" type="range" min="1" max="200" value="10">
+		</div>
+
+		<div class="rows-control">
+			<label for="rows">Rows</label>
+			<input id="rows" type="range" min="3" max="200" value="100">
+		</div>
+
+		<div class="cols-control">
+			<label for="cols">Cols</label>
+			<input id="cols" type="range" min="3" max="200" value="100">
+		</div>
+
+		<button id="play-action">Play/Pause</button>
+		<button id="reset-action">Reset</button>
+
+	</div>
 	<div id="schelling-canvas"></div>
 	<div id="schelling-stats"></div>
 
 	<script>
 		var config = {
 				rows: 100,
-				cols: 200,
+				cols: 100,
 				$doc: $('#schelling-canvas'),
 				groups: {
 					group1: {
-						color: 'red',
-						other_tolerance: 0.7,
+						color: '#ee8080',
+						other_tolerance: 0.5,
 						other_affinity: 0.0,
 						self_tolerance: 1.0,
 						self_affinity: 0.5
 					},
 					group2: {
-						color: 'green',
-						other_tolerance: 0.7,
+						color: '#110000',
+						other_tolerance: 0.5,
 						other_affinity: 0.0,
 						self_tolerance: 1.0,
 						self_affinity: 0.5
 					}
 				},
 				mix: {
-					group1: 5.0,
-					group2: 5.0,
+					group1: 50.0,
+					group2: 50.0,
 					empty: 1.0
 				},
 				movers_per_step: 10,
 				default_color: 'silver'
 			},
+			world, interval;
 
-			world = Schelling.makeWorld(config),
-			interval = null;
+		$('#play-action').click(function(evt) {
+			toggleSchelling();
+		});
+
+		$('#reset-action').click(function(evt) {
+			pauseSchelling();
+			resetSchelling();
+			playSchelling();
+		});
+
+		$('#speed').change(function(evt) {
+			config.movers_per_step = parseInt($('#speed').val());
+		});
+
+		$('#rows').change(function(evt) {
+			pauseSchelling();
+			config.rows = parseInt($('#rows').val());
+			resetSchelling();
+		});
+
+		$('#cols').change(function(evt) {
+			pauseSchelling();
+			config.cols = parseInt($('#cols').val());
+			resetSchelling();
+		});
+
+		function resetSchelling() {
+			config.$doc.empty();
+			config.$doc.css({
+				width: 3*config.cols + 'px',
+				height: 3*config.rows + 'px'
+			});
+			world = Schelling.makeWorld(config);
+		}
 
 		function stepSchelling() {
-			var i;
+			var s;
 			for (s = 0; s < config.movers_per_step; ++s) {
 				Schelling.step(world);
 			}
@@ -89,10 +143,9 @@
 			}
 		};
 
+		resetSchelling();
 		playSchelling();
 	</script>
-
-	<button onclick="toggleSchelling()">Play/Pause</button>
 
 </body>
 </html>
