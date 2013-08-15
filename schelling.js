@@ -9,6 +9,8 @@ popRandom = function(array) {
 };
 
 chooseRandom = function(array, pop) {
+  "use strict";
+
   var index = Math.floor(Math.random() * array.length),
     val;
 
@@ -27,7 +29,7 @@ chooseRandom = function(array, pop) {
 
   S.makeWorld = function(options) {
     var world = _.extend(options, {}),
-        i, cell;
+        i, cell, groupName;
 
     // Set a name attribute for each of the groups
     for (groupName in world.groups) {
@@ -37,8 +39,8 @@ chooseRandom = function(array, pop) {
     world.grid = S.makeInitialGrid(options);
     world.$els = options.$doc.children();
 
-    world.unhappy_cells = []
-    world.empty_cells = []
+    world.unhappy_cells = [];
+    world.empty_cells = [];
     for (i = 0; i < world.grid.length; ++i) {
       cell = world.grid[i];
       if (S.isEmpty(cell)) {
@@ -50,7 +52,7 @@ chooseRandom = function(array, pop) {
     }
 
     return world;
-  }
+  };
 
   S.chooseGroup = function(options) {
     var total = sum(_.values(options.mix)),
@@ -153,8 +155,8 @@ chooseRandom = function(array, pop) {
   };
 
   S.calcHappiness = function(world, cell) {
-    var n, neighbor, ncount = 0, 
-      incount = 0, outcount = 0, inratio, outratio, 
+    var n, neighbor, ncount = 0,
+      incount = 0, outcount = 0, inratio, outratio,
       neighbors = S.getNeighbors(world, cell);
 
     if (S.isEmpty(cell)) {
